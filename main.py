@@ -4,10 +4,13 @@ from upload import s3, BUCKET_NAME
 from botocore.exceptions import ClientError
 import os
 from dotenv import load_dotenv
+import boto3
+import json
 
 app = FastAPI()
 
 load_dotenv()
+
 
 
 @app.post("/upload/", response_class=HTMLResponse)
@@ -15,7 +18,6 @@ async def upload_file(file: UploadFile = File(...)):
     contents = await file.read()
     with open(f"uploaded_{file.filename}", "wb") as f:
         f.write(contents)
-
     try:
         s3.upload_file(f"uploaded_{file.filename}", BUCKET_NAME, f"uploaded_{file.filename}")
         os.remove(f"uploaded_{file.filename}")
