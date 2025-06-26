@@ -6,6 +6,9 @@ import os
 from dotenv import load_dotenv
 import boto3
 import json
+from utils import get_objects
+from fastapi.responses import StreamingResponse
+from io import BytesIO
 
 app = FastAPI()
 
@@ -44,3 +47,19 @@ def main():
         </body>
     </html>
     """
+
+
+@app.get("/get-files")
+def get_files():
+    res = get_objects(BUCKET_NAME)
+    return res
+
+@app.get("/get-object/{object_name}")
+def get_object(object_name:str):
+    object_n = object_name
+    try:
+        response = s3.get_object(Bucket=BUCKET_NAME, Key=object_name)
+        file_stream = BytesIO(response['Body'].read())
+        return StreamingResponse(file_stream, media_type="image/png")
+    except ClientError as e:
+        return {"error": "Something went wrong"}
